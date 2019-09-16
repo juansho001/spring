@@ -1,4 +1,8 @@
- <div class="m-5">
+<ul class="alert alert-danger" *ngIf="errors?.length> 0">
+  <li *ngFor="let error of errors">{{error}}</li>
+</ul>
+
+<div class="m-5">
   <div class="card bg-dark text-white">
     <div class="card-header">{{ titulo }}</div>
     <div class="card-body">
@@ -30,7 +34,7 @@
           <div class="col-sm-6">
             <button class="btn btn-primary" role="button" (click)="create()" *ngIf="!client.id else elseBlock">Save</button>
             <ng-template #elseBlock>
-              <button class="btn btn-primary" role="button" (click)="update()" >Update</button>
+              <button class="btn btn-primary" role="button" (click)="update()">Update</button>
             </ng-template>
           </div>
         </div>

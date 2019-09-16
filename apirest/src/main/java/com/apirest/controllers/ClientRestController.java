@@ -6,12 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import javax.validation.Valid;
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 @RestController
@@ -46,12 +46,20 @@ public class ClientRestController {
     }
 
     @PostMapping("/clients")
-    public ResponseEntity<?> create(@RequestBody Client client){
-        Client clientNew = null;
+    public ResponseEntity<?> create(@Valid @RequestBody Client client, BindingResult bindingResult){
         Map<String, Object> response = new HashMap<>();
+        if(bindingResult.hasErrors()){
+            List<String> errors = bindingResult.getFieldErrors().stream()
+                    .map(fieldError -> "Field '"+fieldError.getField()+"' "+fieldError.getDefaultMessage())
+                    .collect(Collectors.toList());
+
+            response.put("error", errors);
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+        Client clientNew = null;
         try {
             client.setCreatedAt(new Date());
-            clientNew = clientService.save(client);
+            client = clientService.save(client);
         }catch (DataAccessException e){
             response.put("message", "Error insert on database");
             response.put("error", e.getMessage().concat(":").concat(e.getMostSpecificCause().getMessage()));
@@ -65,10 +73,19 @@ public class ClientRestController {
     }
 
     @PutMapping("/clients/{id}")
-    public ResponseEntity<?> update(@RequestBody Client client, @PathVariable Integer id){
+    public ResponseEntity<?> update(@Valid @RequestBody Client client, BindingResult bindingResult, @PathVariable Integer id){
+        Map<String, Object> response = new HashMap<>();
+        if(bindingResult.hasErrors()){
+            List<String> errors = bindingResult.getFieldErrors().stream()
+                    .map(fieldError -> "Field '"+fieldError.getField()+"' "+fieldError.getDefaultMessage())
+                    .collect(Collectors.toList());
+
+            response.put("error", errors);
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+
         Client currentClient = clientService.findById(id);
         Client clientUpdated = null;
-        Map<String, Object> response = new HashMap<>();
 
         if(currentClient==null){
             response.put("message", "The client with id: "+id+ " no exist");

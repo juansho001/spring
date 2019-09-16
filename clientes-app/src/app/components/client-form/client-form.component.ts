@@ -13,21 +13,22 @@ export class ClientFormComponent implements OnInit {
 
   private client: Client = new Client();
   private titulo = 'Create Client';
+  private errors: string[];
 
   constructor(private clientService: ClienteService,
-              private router: Router,
-              private activateRoute: ActivatedRoute) { }
+    private router: Router,
+    private activateRoute: ActivatedRoute) { }
 
   ngOnInit() {
     this.loadClient();
   }
 
   loadClient(): void {
-    this.activateRoute.params.subscribe(params =>{
+    this.activateRoute.params.subscribe(params => {
       const id = params['id'];
       if (id) {
         this.clientService.getCliente(id).subscribe(client => {
-            this.client = client;
+          this.client = client;
         });
       }
     });
@@ -38,19 +39,29 @@ export class ClientFormComponent implements OnInit {
       this.router.navigate(['/clientes']);
       console.log('test');
       swal.fire('New Client',
-                `Cliente ${cliente.name} creado con exito`,
-                'success');
+        `Cliente ${cliente.name} creado con exito`,
+        'success');
 
-    });
+    },
+      err => {
+        this.errors = err.error.error as string[];
+        console.log('Error Code Backend ' + err.status);
+        console.log(err.error);
+      });
   }
 
-  update(){
-    this.clientService.update(this.client).subscribe(client =>{
+  update() {
+    this.clientService.update(this.client).subscribe(client => {
       this.router.navigate(['/clientes']);
-      swal.fire('Updated< Client',
+      swal.fire('Updated Client',
         `Cliente ${client.name} actualizado con exito`,
         'success');
-    });
+    },
+      err => {
+        this.errors = err.error as string[];
+        console.log('Error Code Backend ' + err.status);
+        console.log(err.error.errors);
+      });
   }
 
 }
